@@ -1,0 +1,19 @@
+.song {
+  color: white;
+  display: flex;
+  align-items: center;
+  column-gap: 24px;
+  cursor: pointer;
+  opacity: 0.5;
+
+  &:hover {
+    opacity: 1;
+  }
+}
+
+.title {
+  max-width: 20ch;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
