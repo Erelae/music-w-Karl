@@ -5,6 +5,7 @@
   column-gap: 24px;
   cursor: pointer;
   opacity: 0.5;
+  transition: opacity 0.2s ease-out;
 
   &:hover {
     opacity: 1;

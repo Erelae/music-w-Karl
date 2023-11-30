@@ -1,0 +1,18 @@
+.picker {
+  position: fixed;
+  bottom: 24px;
+  left: 24px;
+  display: flex;
+  flex-direction: column;
+  color: white;
+
+  div {
+    cursor: pointer;
+    opacity: 0.5;
+
+    &:hover {
+      opacity: 1;
+      transition: opacity 0.2s ease-out;
+    }
+  }
+}

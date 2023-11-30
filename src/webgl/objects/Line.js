@@ -35,7 +35,7 @@ export default class Line {
     for (let i = 0; i < 256; i++) {
       if (i % MODULO === 0) {
         n++;
-        console.log(n);
+        // console.log(n);
       }
 
       const mesh = new THREE.Mesh(this.geometry, this.material[n]);

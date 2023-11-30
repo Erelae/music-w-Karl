@@ -5,8 +5,13 @@ import { EffectComposer } from "three/examples/jsm/postprocessing/EffectComposer
 import { RenderPass } from "three/examples/jsm/postprocessing/RenderPass";
 import { UnrealBloomPass } from "three/examples/jsm/postprocessing/UnrealBloomPass";
 import Stats from "three/examples/jsm/libs/stats.module.js";
-// import Cube from "./objects/Cube";
+import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
+import LogoIut from "./objects/LogoIut";
+import Board from "./objects/Board";
+import Cube from "./objects/Cube";
+import Cover from "./objects/Cover";
 import Line from "./objects/Line";
+import pane from "../utils/Pane";
 
 class SCENE {
   setup(canvas) {
@@ -18,10 +23,21 @@ class SCENE {
     this.setupCamera();
     this.setupRenderer();
     this.setupStats();
+    this.setupGLTFLoader();
+    this.setupTextureLoader();
+
     this.addObjects();
     this.addEvents();
     this.setupControls();
     this.setupPostProcessing();
+  }
+
+  setupGLTFLoader() {
+    this.gltfLoader = new GLTFLoader();
+  }
+
+  setupTextureLoader() {
+    this.textureLoader = new THREE.TextureLoader();
   }
 
   setupScene() {
@@ -34,6 +50,11 @@ class SCENE {
   }
 
   setupPostProcessing() {
+    this.BLOOM_PARAMS = {
+      strength: 1,
+      radius: 0,
+      treshold: 0,
+    };
     // replaces the renderer
     this.composer = new EffectComposer(this.renderer);
 
@@ -44,13 +65,52 @@ class SCENE {
 
     this.bloomPass = new UnrealBloomPass(
       new THREE.Vector2(this.width / this.height),
-      1,
-      0,
-      0
+      this.BLOOM_PARAMS.strength,
+      this.BLOOM_PARAMS.radius,
+      this.BLOOM_PARAMS.treshold
     );
 
     this.composer.addPass(this.scenePass);
     this.composer.addPass(this.bloomPass);
+
+    this.postProcessFolder = pane.addFolder({
+      title: "Post process",
+    });
+
+    this.postProcessFolder
+      .addBinding(this.BLOOM_PARAMS, "strength", {
+        min: 0,
+        max: 1,
+        step: 0.01,
+        label: "Force de l'effet",
+      })
+      .on("change", (e) => {
+        console.log(e.value);
+        this.bloomPass.strength = e.value;
+      });
+
+    this.postProcessFolder
+      .addBinding(this.BLOOM_PARAMS, "radius", {
+        min: 0,
+        max: 1,
+        step: 0.01,
+        label: "Aura",
+      })
+      .on("change", (e) => {
+        console.log(e.value);
+        this.bloomPass.radius = e.value;
+      });
+    this.postProcessFolder
+      .addBinding(this.BLOOM_PARAMS, "treshold", {
+        min: 0,
+        max: 1,
+        step: 0.01,
+        label: "Seuil de l'effet",
+      })
+      .on("change", (e) => {
+        console.log(e.value);
+        this.bloomPass.threshold = e.value;
+      });
   }
 
   setupCamera() {
@@ -60,7 +120,6 @@ class SCENE {
       0.1,
       10000
     );
-    this.camera.position.z = 1000;
   }
 
   setupControls() {
@@ -109,20 +168,56 @@ class SCENE {
   }
 
   addObjects() {
-    // this.cube = new Cube();
+    this.cube = new Cube();
     this.line = new Line();
+    this.logoIut = new LogoIut();
+    this.board = new Board();
+    this.cover = new Cover();
 
-    this.scene.add(this.line.group);
-
-    // this.cube2 = new Cube(); un autre cube
-
-    // this.scene.add(this.cube.mesh);
+    this.selectedObject = this.cover;
+    this.scene.add(this.selectedObject.group);
   }
 
-  tick = () => {
+  changeVisualizer(index) {
+    this.scene.remove(this.selectedObject.group);
+    switch (index) {
+      case 0:
+        this.selectedObject = this.cube;
+        this.camera.position.z = 12;
+        this.bloomPass.strength = 1;
+        break;
+      case 1:
+        this.selectedObject = this.line;
+        this.camera.position.z = 1000;
+        this.bloomPass.strength = 0.5;
+        break;
+
+      case 2:
+        this.selectedObject = this.logoIut;
+        this.camera.position.z = 10;
+        this.bloomPass.strength = 0.5;
+        break;
+
+      case 3:
+        this.selectedObject = this.board;
+        this.camera.position.z = 50;
+        break;
+
+      case 4:
+        this.selectedObject = this.cover;
+        this.camera.position.z = 500;
+        this.bloomPass.strength = 0.6;
+        break;
+
+      default:
+        break;
+    }
+    this.scene.add(this.selectedObject.group);
+  }
+
+  tick = (time, deltaTime, frame) => {
     this.stats.begin();
-    // this.cube.tick();
-    this.line.tick();
+    this.selectedObject.tick(deltaTime);
     this.composer.render(this.scene, this.camera);
 
     this.stats.end();
